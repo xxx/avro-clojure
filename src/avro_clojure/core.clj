@@ -11,8 +11,8 @@
   [employee output-filename]
   (let [schema (parse-schema-filepath "schema/mpd-simple.avsc")]
     (with-open [adf (avro/data-file-writer "snappy" schema output-filename)]
-      (.append adf {:Name (:name employee) :Age (:age employee)})
-      (.append adf {:Name "a dog" :Age 4}))))
+      (.append adf employee)
+      (.append adf {:name "a dog" :age 4}))))
 
 (defn read-employee
   [filename]
