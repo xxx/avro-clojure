@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: com.damballa/abracad:0.4.13">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/damballa/abracad/0.4.13/abracad-0.4.13.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

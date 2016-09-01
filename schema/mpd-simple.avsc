@@ -1,0 +1,9 @@
+{
+  "type" : "record",
+  "namespace" : "coffee.mpd.example",
+  "name" : "Employee",
+  "fields" : [
+    { "name" : "Name" , "type" : "string" },
+    { "name" : "Age" , "type" : "int" }
+  ]
+}
