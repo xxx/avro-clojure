@@ -1,6 +1,8 @@
 (ns avro-clojure.core
   (:require [abracad.avro :as avro]
-            [clojure.java.shell :refer [sh]]))
+            [clojure.java.shell :refer [sh]]
+            [clojure.java.io :as io])
+  (:import (java.io ByteArrayOutputStream)))
 
 (defn parse-schema-filepath
   [schema-file]
@@ -19,6 +21,22 @@
   (with-open [adf (avro/data-file-reader filename)]
     (doall (seq adf))))
 
+(defn read-employee-str
+  [employee-str]
+  (let [schema (parse-schema-filepath "schema/mpd-simple.avsc")]
+    (with-open [adf (avro/data-file-reader schema employee-str)]
+      (doall (seq adf)))))
+
+(defn- slurp-bytes
+  "Slurp the bytes from a slurpable thing"
+  [x]
+  (with-open [out (ByteArrayOutputStream.)]
+    (io/copy (io/input-stream x) out)
+    (.toByteArray out)))
+
 (comment
   (write-employee {:name "michael dungeon" :age 666} "mpd.out")
-  (read-employee "mpd.out"))
+  (read-employee "mpd.out")
+  (read-employee-str (slurp-bytes "mpd.out")))
+
+
