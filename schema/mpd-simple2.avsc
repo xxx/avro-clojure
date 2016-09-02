@@ -1,0 +1,10 @@
+{
+  "type" : "record",
+  "namespace" : "coffee.mpd.example",
+  "name" : "Employee",
+  "fields" : [
+    { "name" : "name" , "type" : "string" },
+    { "name" : "age" , "type" : "int" },
+    { "name" : "derp", "type" : "string", "default" : "derp!@#™™™…¬˚∆…˚∆¬©∆˚∆©∂ß∑ßΩ≈®∂†ƒ¥©¨ˆ˚¬∆˙√©ƒ†©¨ˆ∆"}
+  ]
+}

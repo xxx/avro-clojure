@@ -23,7 +23,7 @@
 
 (defn read-employee-str
   [employee-str]
-  (let [schema (parse-schema-filepath "schema/mpd-simple.avsc")]
+  (let [schema (parse-schema-filepath "schema/mpd-simple2.avsc")]
     (with-open [adf (avro/data-file-reader schema employee-str)]
       (doall (seq adf)))))
 
