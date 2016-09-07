@@ -1,7 +1,8 @@
 (ns avro-clojure.core
   (:require [abracad.avro :as avro]
             [clojure.java.shell :refer [sh]]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [kafka.streams :as k])
   (:import (java.io ByteArrayOutputStream)))
 
 (defn parse-schema-filepath
