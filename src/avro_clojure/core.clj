@@ -1,57 +1,75 @@
 (ns avro-clojure.core
-  (:require [abracad.avro :as avro]
-            [clojure.java.shell :refer [sh]]
-            [clojure.java.io :as io]
-            [kafka.streams :as k])
-  (:import (java.io ByteArrayOutputStream)))
+  (:require [avro-conversion.conversion :as avro]
+            [kafka.streams :as k]
+            [kafka.producer :as kp])
+  (:import (org.apache.kafka.clients.producer ProducerConfig)
+           (org.apache.kafka.common.serialization ByteArraySerializer Serdes)
+           (org.apache.kafka.streams StreamsConfig)))
 
-(defn parse-schema-filepath
-  [schema-file]
-  (let [f (slurp schema-file)]
-    (avro/parse-schema f)))
+(def input-topic "clj-input")
+(def output-topic "clj-output")
 
-(defn write-employees-to-file
-  [employees output-filename]
-  (let [schema (parse-schema-filepath "schema/mpd-simple.avsc")]
-    (with-open [adf (avro/data-file-writer "snappy" schema output-filename)]
-      (doseq [e employees] (.append adf e)))))
+(defn process-stuff [v]
+  (println "type: " (type v))
+  (println "raw input: " v)
+  (println "str input: " (String. v))
+  (let [read-schema (slurp "schema/mpd-simple2.avsc")
+        r (avro/avro->records v read-schema)
+        write-schema (slurp "schema/mpd-simple.avsc")]
+    (println "converted: " r)
+    (println "converted type: " (type r))
+    (avro/records->avro r write-schema)))
 
-(defn read-employees-from-file
-  [filename]
-  (with-open [adf (avro/data-file-reader filename)]
-    (doall (seq adf))))
+(defn mah-streams []
+  (let [builder (k/builder)
+        input-stream (-> builder
+                         (k/from input-topic)
+                         (k/map-values process-stuff))]
 
-(defn write-employees
-  "Write one or more employees to a byte string, returning it"
-  [employees schema-path]
-  (let [schema (parse-schema-filepath schema-path)
-        out (ByteArrayOutputStream.)]
-    (with-open [adf (avro/data-file-writer "snappy" schema out)]
-      (doseq [e employees] (.append adf e)))
-    (.toByteArray out)))
+    (k/to input-stream output-topic)
 
-(defn read-employees
-  "Create employee map(s) from a byte string with schema, which can be overridden."
-  ([employees] (with-open [adf (avro/data-file-reader employees)]
-                 (doall (seq adf))))
+    (k/streams
+      builder
+      (k/streams-props
+        "mpd-avro-test"
+        {StreamsConfig/VALUE_SERDE_CLASS_CONFIG
+         (-> (Serdes/ByteArray) .getClass .getName)}))))
 
-  ([employees schema-path] (let [schema (parse-schema-filepath schema-path)]
-                             (with-open [adf (avro/data-file-reader schema employees)]
-                               (doall (seq adf))))))
+(defn start []
+  {:streams (doto (mah-streams) (.start))})
 
-(defn- slurp-bytes
-  "Slurp the bytes from a slurpable thing"
-  [x]
-  (let [out (ByteArrayOutputStream.)]
-    (io/copy (io/input-stream x) out)
-    (.toByteArray out)))
+(defn stop [sys]
+  (k/close (:streams sys)))
 
 (comment
-  (String. (slurp-bytes "mpd.out"))
-  (String. (write-employees [{:name "michael dungeon" :age 666} {:name "a dog" :age 9}] "schema/mpd-simple.avsc"))
-  (read-employees (write-employees [{:name "michael dungeon" :age 666} {:name "a dog" :age 9}] "schema/mpd-simple.avsc") "schema/mpd-simple2.avsc")
-  (read-employees (write-employees [{:name "michael dungeon" :age 666} {:name "a dog" :age 9}] "schema/mpd-simple.avsc"))
+  (avro/avro->records
+    (avro/records->avro
+      [{:name "michael dungeon" :age 666} {:name "a dog" :age 9}]
+      (slurp "schema/mpd-simple.avsc"))
+    (slurp "schema/mpd-simple2.avsc"))
 
-  (write-employees-to-file ({:name "michael dungeon" :age 666}) "mpd.out")
-  (read-employees-from-file "mpd.out")
-  (read-employees (slurp-bytes "mpd.out")))
+  (avro/avro->records
+    (avro/records->avro
+      [{:name "michael dungeon" :age 666} {:name "a dog" :age 9}]
+      (slurp "schema/mpd-simple.avsc")))
+
+  (def producer (kp/create-producer (kp/producer-props {ProducerConfig/VALUE_SERIALIZER_CLASS_CONFIG (.getName ByteArraySerializer)})))
+  (kp/send
+    producer
+    input-topic
+    (avro/records->avro
+      [{:name "mp dizzle" :age 666666666} {:name "Josie" :age 15}]
+      (slurp "schema/mpd-simple.avsc")))
+
+  (def stuff (start))
+  (stop stuff)
+
+  (do
+    (stop stuff)
+    (def stuff (start))
+    (kp/send
+      producer
+      input-topic
+      (avro/records->avro
+        [{:name "mp dizzle" :age 666666666} {:name "Josie" :age 15}]
+        (slurp "schema/mpd-simple.avsc")))))

@@ -1,7 +1,6 @@
 (ns kafka.streams
   (:refer-clojure :exclude [filter])
-  (:require [clojure.edn :as edn]
-            [kafka.utils :as utils]
+  (:require [kafka.utils :as utils]
             [environ.core :refer [env]])
   (:import (org.apache.kafka.streams.kstream Predicate ValueMapper ForeachAction KStream KStreamBuilder)
            (java.util Properties)
@@ -62,14 +61,10 @@
   (.foreach stream (action f)))
 
 (defn ^KStream from [^KStreamBuilder builder topic]
-  (-> builder
-      (.stream (utils/vargs topic))
-      (map-values edn/read-string)))
+  (.stream builder (utils/vargs topic)))
 
 (defn to [^KStream stream topic]
-  (-> stream
-      (map-values pr-str)
-      (.to topic)))
+  (.to stream topic))
 
 (defn pprint [stream label]
   (foreach stream (fn [k v] (clojure.pprint/pprint [label k v]))))
