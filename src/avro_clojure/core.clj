@@ -1,5 +1,5 @@
 (ns avro-clojure.core
-  (:require [avro-conversion.conversion :as avro]
+    (:require [clj-avro-3dna.core :as avro]
             [kafka.streams :as k]
             [kafka.producer :as kp]))
 
