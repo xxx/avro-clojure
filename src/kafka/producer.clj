@@ -4,7 +4,7 @@
             ;[clojure.core.async :as a]
             [environ.core :refer [env]])
   (:import (org.apache.kafka.clients.producer ProducerConfig KafkaProducer ProducerRecord)
-           (org.apache.kafka.common.serialization StringSerializer)
+           (org.apache.kafka.common.serialization StringSerializer ByteArraySerializer)
            (java.util Properties)))
 
 (defn ^Properties producer-props
@@ -20,11 +20,14 @@
         ProducerConfig/LINGER_MS_CONFIG (int 1)
         ProducerConfig/BUFFER_MEMORY_CONFIG (int 33554432)
         ProducerConfig/KEY_SERIALIZER_CLASS_CONFIG (.getName StringSerializer)
-        ProducerConfig/VALUE_SERIALIZER_CLASS_CONFIG (.getName StringSerializer)}
+        ProducerConfig/VALUE_SERIALIZER_CLASS_CONFIG (.getName ByteArraySerializer)}
        overrides))))
 
-(defn create-producer [^Properties properties]
-  (KafkaProducer. properties))
+(defn create-producer
+  ([]
+   (create-producer (producer-props)))
+  ([^Properties properties]
+   (KafkaProducer. properties)))
 
 (defn send [^KafkaProducer producer ^String topic message]
   (.send producer (ProducerRecord. topic message)))

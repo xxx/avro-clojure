@@ -19,7 +19,7 @@
         StreamsConfig/ZOOKEEPER_CONNECT_CONFIG (:zookeeper env)
         StreamsConfig/NUM_STREAM_THREADS_CONFIG (int 4)
         StreamsConfig/KEY_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName)
-        StreamsConfig/VALUE_SERDE_CLASS_CONFIG (-> (Serdes/String) .getClass .getName)}
+        StreamsConfig/VALUE_SERDE_CLASS_CONFIG (-> (Serdes/ByteArray) .getClass .getName)}
        overrides))))
 
 (defn builder []

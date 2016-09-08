@@ -1,10 +1,7 @@
 (ns avro-clojure.core
   (:require [avro-conversion.conversion :as avro]
             [kafka.streams :as k]
-            [kafka.producer :as kp])
-  (:import (org.apache.kafka.clients.producer ProducerConfig)
-           (org.apache.kafka.common.serialization ByteArraySerializer Serdes)
-           (org.apache.kafka.streams StreamsConfig)))
+            [kafka.producer :as kp]))
 
 (def input-topic "clj-input")
 (def output-topic "clj-output")
@@ -30,10 +27,7 @@
 
     (k/streams
       builder
-      (k/streams-props
-        "mpd-avro-test"
-        {StreamsConfig/VALUE_SERDE_CLASS_CONFIG
-         (-> (Serdes/ByteArray) .getClass .getName)}))))
+      (k/streams-props "mpd-avro-test"))))
 
 (defn start []
   {:streams (doto (mah-streams) (.start))})
@@ -53,7 +47,7 @@
       [{:name "michael dungeon" :age 666} {:name "a dog" :age 9}]
       (slurp "schema/mpd-simple.avsc")))
 
-  (def producer (kp/create-producer (kp/producer-props {ProducerConfig/VALUE_SERIALIZER_CLASS_CONFIG (.getName ByteArraySerializer)})))
+  (def producer (kp/create-producer))
   (kp/send
     producer
     input-topic
